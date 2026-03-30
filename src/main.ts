@@ -1,7 +1,77 @@
-const codeEl = document.getElementById("code") as HTMLTextAreaElement;
+import { EditorView, keymap } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
+import { basicSetup } from "codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
+
+const DEFAULT_CODE = `console.log("Hello from Dynamic Workers!");
+
+const nums = [1, 2, 3, 4, 5];
+const sum = nums.reduce((a, b) => a + b, 0);
+console.log("Sum:", sum);
+
+sum`;
+
+const editorParent = document.getElementById("editor-pane") as HTMLDivElement;
 const outputEl = document.getElementById("output") as HTMLDivElement;
 const runBtn = document.getElementById("run-btn") as HTMLButtonElement;
 const clearBtn = document.getElementById("clear-btn") as HTMLButtonElement;
+
+// Theme overrides to blend with our dark UI
+const theme = EditorView.theme({
+  "&": {
+    height: "100%",
+    fontSize: "14px",
+  },
+  ".cm-scroller": {
+    fontFamily: "var(--font-mono)",
+    lineHeight: "1.6",
+    padding: "8px 0",
+  },
+  ".cm-content": {
+    padding: "0 16px",
+  },
+  ".cm-gutters": {
+    background: "var(--bg)",
+    border: "none",
+    color: "var(--text-dim)",
+  },
+  ".cm-activeLineGutter": {
+    background: "var(--surface)",
+  },
+  ".cm-activeLine": {
+    background: "rgba(255,255,255,0.04)",
+  },
+  "&.cm-focused .cm-cursor": {
+    borderLeftColor: "var(--accent)",
+  },
+  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": {
+    background: "rgba(0, 210, 255, 0.15) !important",
+  },
+});
+
+const editor = new EditorView({
+  state: EditorState.create({
+    doc: DEFAULT_CODE,
+    extensions: [
+      basicSetup,
+      javascript(),
+      oneDark,
+      theme,
+      keymap.of([
+        {
+          key: "Mod-Enter",
+          run: () => {
+            runCode();
+            return true;
+          },
+        },
+      ]),
+      EditorView.lineWrapping,
+    ],
+  }),
+  parent: editorParent,
+});
 
 function appendLine(text: string, className: string = "log") {
   const line = document.createElement("div");
@@ -16,7 +86,7 @@ function clearOutput() {
 }
 
 async function runCode() {
-  const code = codeEl.value.trim();
+  const code = editor.state.doc.toString().trim();
   if (!code) return;
 
   runBtn.disabled = true;
@@ -31,7 +101,7 @@ async function runCode() {
       body: JSON.stringify({ code }),
     });
 
-    const data = await res.json() as {
+    const data = (await res.json()) as {
       logs: { level: string; message: string }[];
       result: string | null;
       error: string | null;
@@ -63,24 +133,5 @@ async function runCode() {
   }
 }
 
-// Tab key inserts spaces in textarea
-codeEl.addEventListener("keydown", (e) => {
-  if (e.key === "Tab") {
-    e.preventDefault();
-    const start = codeEl.selectionStart;
-    const end = codeEl.selectionEnd;
-    codeEl.value = codeEl.value.substring(0, start) + "  " + codeEl.value.substring(end);
-    codeEl.selectionStart = codeEl.selectionEnd = start + 2;
-  }
-});
-
 runBtn.addEventListener("click", runCode);
 clearBtn.addEventListener("click", clearOutput);
-
-// Ctrl/Cmd+Enter to run
-document.addEventListener("keydown", (e) => {
-  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-    e.preventDefault();
-    runCode();
-  }
-});

@@ -14,22 +14,7 @@
       <h1>JS Runner</h1>
       <button id="run-btn" type="button">Run ▶</button>
     </header>
-    <div id="editor-pane">
-      <textarea
-        id="code"
-        spellcheck="false"
-        autocapitalize="none"
-        autocomplete="off"
-        autocorrect="off"
-        placeholder="// Write JavaScript here..."
-      >console.log("Hello from Dynamic Workers!");
-
-const nums = [1, 2, 3, 4, 5];
-const sum = nums.reduce((a, b) => a + b, 0);
-console.log("Sum:", sum);
-
-sum</textarea>
-    </div>
+    <div id="editor-pane"></div>
     <div id="output-pane">
       <div id="output-header">
         <span>Output</span>

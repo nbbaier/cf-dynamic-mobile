@@ -77,28 +77,12 @@ header h1 {
 #editor-pane {
   flex: 1;
   min-height: 0;
-  display: flex;
+  overflow: hidden;
   border-bottom: 1px solid var(--border);
 }
 
-#code {
-  width: 100%;
+#editor-pane .cm-editor {
   height: 100%;
-  padding: 16px;
-  background: var(--bg);
-  color: var(--text);
-  border: none;
-  outline: none;
-  resize: none;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.6;
-  tab-size: 2;
-  -webkit-overflow-scrolling: touch;
-}
-
-#code::placeholder {
-  color: var(--text-dim);
 }
 
 #output-pane {
