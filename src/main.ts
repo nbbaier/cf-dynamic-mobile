@@ -1,8 +1,8 @@
-import { EditorView, keymap } from "@codemirror/view";
-import { EditorState } from "@codemirror/state";
-import { basicSetup } from "codemirror";
 import { javascript } from "@codemirror/lang-javascript";
+import { EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { EditorView, keymap } from "@codemirror/view";
+import { basicSetup } from "codemirror";
 
 const DEFAULT_CODE = `console.log("Hello from Dynamic Workers!");
 
@@ -73,7 +73,7 @@ const editor = new EditorView({
   parent: editorParent,
 });
 
-function appendLine(text: string, className: string = "log") {
+function appendLine(text: string, className = "log") {
   const line = document.createElement("div");
   line.className = `log-line ${className}`;
   line.textContent = text;
@@ -87,7 +87,9 @@ function clearOutput() {
 
 async function runCode() {
   const code = editor.state.doc.toString().trim();
-  if (!code) return;
+  if (!code) {
+    return;
+  }
 
   runBtn.disabled = true;
   runBtn.textContent = "Running…";
@@ -121,7 +123,7 @@ async function runCode() {
       appendLine(`→ ${data.result}`, "result");
     }
 
-    if (!data.logs.length && !data.error && data.result === null) {
+    if (!(data.logs.length || data.error) && data.result === null) {
       appendLine("(no output)", "system");
     }
   } catch (e) {
@@ -140,7 +142,9 @@ const closeModal = document.getElementById("close-modal") as HTMLButtonElement;
 infoBtn.addEventListener("click", () => modal.showModal());
 closeModal.addEventListener("click", () => modal.close());
 modal.addEventListener("click", (e) => {
-  if (e.target === modal) modal.close();
+  if (e.target === modal) {
+    modal.close();
+  }
 });
 
 runBtn.addEventListener("click", runCode);

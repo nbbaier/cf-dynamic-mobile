@@ -1,17 +1,20 @@
 interface Env {
   LOADER: {
     load(code: WorkerCode): WorkerStub;
-    get(id: string, factory: () => Promise<WorkerCode> | WorkerCode): WorkerStub;
+    get(
+      id: string,
+      factory: () => Promise<WorkerCode> | WorkerCode
+    ): WorkerStub;
   };
 }
 
 interface WorkerCode {
-  mainModule: string;
-  modules: Record<string, string>;
   compatibilityDate: string;
   compatibilityFlags?: string[];
   env?: Record<string, unknown>;
   globalOutbound?: unknown | null;
+  mainModule: string;
+  modules: Record<string, string>;
   tails?: unknown[];
 }
 
@@ -19,8 +22,10 @@ interface WorkerStub {
   getEntrypoint(name?: string): { fetch(req: Request): Promise<Response> };
 }
 
+const TRAILING_SEMICOLON = /;$/;
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  fetch(request: Request, env: Env): Response | Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/run" && request.method === "POST") {
@@ -37,34 +42,65 @@ export default {
  * If the last non-empty line looks like a bare expression (not a declaration,
  * assignment, control flow, etc.), extract it so we can assign its value to __result.
  */
-function extractLastExpression(code: string): { body: string; lastExpr: string | null } {
+function extractLastExpression(code: string): {
+  body: string;
+  lastExpr: string | null;
+} {
   const lines = code.split("\n");
 
   // Walk backwards to find the last non-empty, non-comment line
   let lastIdx = -1;
   for (let i = lines.length - 1; i >= 0; i--) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) {
+      continue;
+    }
+    const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith("//") && !trimmed.startsWith("/*")) {
       lastIdx = i;
       break;
     }
   }
 
-  if (lastIdx === -1) return { body: code, lastExpr: null };
+  if (lastIdx === -1) {
+    return { body: code, lastExpr: null };
+  }
 
-  const lastLine = lines[lastIdx].trim().replace(/;$/, "");
+  const lastLineRaw = lines[lastIdx];
+  if (lastLineRaw === undefined) {
+    return { body: code, lastExpr: null };
+  }
+  const lastLine = lastLineRaw.trim().replace(TRAILING_SEMICOLON, "");
 
   // Skip lines that are clearly statements, not expressions
   const statementPrefixes = [
-    "const ", "let ", "var ", "function ", "class ", "if ", "if(",
-    "for ", "for(", "while ", "while(", "switch ", "switch(",
-    "try ", "throw ", "import ", "export ", "return ",
+    "const ",
+    "let ",
+    "var ",
+    "function ",
+    "class ",
+    "if ",
+    "if(",
+    "for ",
+    "for(",
+    "while ",
+    "while(",
+    "switch ",
+    "switch(",
+    "try ",
+    "throw ",
+    "import ",
+    "export ",
+    "return ",
     "await ", // top-level await is a statement here
-    "}", "{",
+    "}",
+    "{",
   ];
 
-  const isStatement = statementPrefixes.some(p => lastLine.startsWith(p));
-  if (isStatement) return { body: code, lastExpr: null };
+  const isStatement = statementPrefixes.some((p) => lastLine.startsWith(p));
+  if (isStatement) {
+    return { body: code, lastExpr: null };
+  }
 
   // It looks like an expression — extract it
   const body = lines.slice(0, lastIdx).join("\n");
@@ -130,13 +166,16 @@ export default {
       globalOutbound: null, // sandbox: no network access
     });
 
-    const response = await worker.getEntrypoint().fetch(
-      new Request("https://dummy/", { method: "POST" })
-    );
+    const response = await worker
+      .getEntrypoint()
+      .fetch(new Request("https://dummy/", { method: "POST" }));
     const data = await response.json();
     return Response.json(data);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    return Response.json({ logs: [], result: null, error: `Worker error: ${message}` }, { status: 500 });
+    return Response.json(
+      { logs: [], result: null, error: `Worker error: ${message}` },
+      { status: 500 }
+    );
   }
 }
