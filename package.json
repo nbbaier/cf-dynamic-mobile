@@ -1,0 +1,21 @@
+{
+  "name": "cf-dynamic-mobile",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite build && wrangler dev",
+    "dev:vite": "vite dev",
+    "dev:worker": "wrangler dev",
+    "build": "vite build",
+    "deploy": "vite build && wrangler deploy"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@cloudflare/workers-types": "^4.20260329.1",
+    "vite": "^8.0.3",
+    "wrangler": "^4.78.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

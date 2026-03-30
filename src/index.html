@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>JS Runner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>JS Runner</h1>
+      <button id="run-btn" type="button">Run ▶</button>
+    </header>
+    <div id="editor-pane">
+      <textarea
+        id="code"
+        spellcheck="false"
+        autocapitalize="none"
+        autocomplete="off"
+        autocorrect="off"
+        placeholder="// Write JavaScript here..."
+      >console.log("Hello from Dynamic Workers!");
+
+const nums = [1, 2, 3, 4, 5];
+const sum = nums.reduce((a, b) => a + b, 0);
+console.log("Sum:", sum);
+
+return sum;</textarea>
+    </div>
+    <div id="output-pane">
+      <div id="output-header">
+        <span>Output</span>
+        <button id="clear-btn" type="button">Clear</button>
+      </div>
+      <div id="output"></div>
+    </div>
+  </div>
+  <script type="module" src="main.ts"></script>
+</body>
+</html>
