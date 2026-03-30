@@ -32,6 +32,45 @@ export default {
   },
 };
 
+/**
+ * Split code into body + last expression (REPL-style).
+ * If the last non-empty line looks like a bare expression (not a declaration,
+ * assignment, control flow, etc.), extract it so we can assign its value to __result.
+ */
+function extractLastExpression(code: string): { body: string; lastExpr: string | null } {
+  const lines = code.split("\n");
+
+  // Walk backwards to find the last non-empty, non-comment line
+  let lastIdx = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const trimmed = lines[i].trim();
+    if (trimmed && !trimmed.startsWith("//") && !trimmed.startsWith("/*")) {
+      lastIdx = i;
+      break;
+    }
+  }
+
+  if (lastIdx === -1) return { body: code, lastExpr: null };
+
+  const lastLine = lines[lastIdx].trim().replace(/;$/, "");
+
+  // Skip lines that are clearly statements, not expressions
+  const statementPrefixes = [
+    "const ", "let ", "var ", "function ", "class ", "if ", "if(",
+    "for ", "for(", "while ", "while(", "switch ", "switch(",
+    "try ", "throw ", "import ", "export ", "return ",
+    "await ", // top-level await is a statement here
+    "}", "{",
+  ];
+
+  const isStatement = statementPrefixes.some(p => lastLine.startsWith(p));
+  if (isStatement) return { body: code, lastExpr: null };
+
+  // It looks like an expression — extract it
+  const body = lines.slice(0, lastIdx).join("\n");
+  return { body, lastExpr: lastLine };
+}
+
 async function handleRun(request: Request, env: Env): Promise<Response> {
   let code: string;
   try {
@@ -45,8 +84,10 @@ async function handleRun(request: Request, env: Env): Promise<Response> {
     return Response.json({ error: "No code provided" }, { status: 400 });
   }
 
-  // Wrap user code directly as module source — no new Function() (blocked in Workers)
-  // User code runs at module top-level; we capture console output and export a result.
+  // Wrap user code as top-level module code (REPL-style).
+  // The last expression statement is captured as the result automatically.
+  const { body, lastExpr } = extractLastExpression(code);
+
   const wrappedCode = `
 const __logs = [];
 const __origLog = console.log;
@@ -60,9 +101,8 @@ console.warn = (...args) => __logs.push({ level: "warn", message: args.map(a => 
 let __result;
 let __error = null;
 try {
-  __result = await (async () => {
-    ${code}
-  })();
+  ${body}
+  ${lastExpr ? `__result = ${lastExpr};` : ""}
 } catch (e) {
   __error = e instanceof Error ? e.message : String(e);
 } finally {
