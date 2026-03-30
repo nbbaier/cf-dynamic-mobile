@@ -133,5 +133,15 @@ async function runCode() {
   }
 }
 
+const infoBtn = document.getElementById("info-btn") as HTMLButtonElement;
+const modal = document.getElementById("info-modal") as HTMLDialogElement;
+const closeModal = document.getElementById("close-modal") as HTMLButtonElement;
+
+infoBtn.addEventListener("click", () => modal.showModal());
+closeModal.addEventListener("click", () => modal.close());
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.close();
+});
+
 runBtn.addEventListener("click", runCode);
 clearBtn.addEventListener("click", clearOutput);

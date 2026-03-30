@@ -11,9 +11,28 @@
 <body>
   <div id="app">
     <header>
-      <h1>JS Runner</h1>
+      <div class="header-left">
+        <h1>JS Runner</h1>
+        <button id="info-btn" type="button" aria-label="About">?</button>
+      </div>
       <button id="run-btn" type="button">Run ▶</button>
     </header>
+    <dialog id="info-modal">
+      <div class="modal-content">
+        <h2>JS Runner</h2>
+        <p>A mobile-friendly JavaScript playground powered by <a href="https://developers.cloudflare.com/dynamic-workers/" target="_blank" rel="noopener">Cloudflare Dynamic Workers</a>.</p>
+        <p>Code runs in sandboxed, on-demand workers with no network access. Console output and the last expression value are captured automatically.</p>
+        <ul>
+          <li><kbd>Cmd</kbd>/<kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run</li>
+          <li>Last expression is returned as the result</li>
+          <li><code>console.log/warn/error</code> captured</li>
+        </ul>
+        <div class="modal-links">
+          <a href="https://github.com/nbbaier/cf-dynamic-mobile" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <button id="close-modal" type="button">Close</button>
+      </div>
+    </dialog>
     <div id="editor-pane"></div>
     <div id="output-pane">
       <div id="output-header">
