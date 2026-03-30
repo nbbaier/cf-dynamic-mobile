@@ -4,10 +4,8 @@
   "compatibility_date": "2026-01-28",
   "compatibility_flags": ["nodejs_compat"],
   "worker_loaders": [{ "binding": "LOADER" }],
-  "assets": {
-    "directory": "dist"
-  },
-  "observability": {
-    "enabled": true
-  }
+  "assets": { "directory": "dist" },
+  "observability": { "enabled": true },
+  "routes": [{ "pattern": "js-runner.nicobaier.com", "custom_domain": true }],
+  "workers_dev": true
 }
